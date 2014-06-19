@@ -89,12 +89,33 @@ void redrawMaze(Mat *img, struct baseMapNode startNode[][MAZE_HEIGHT], struct mo
 
 			}
 		}
+
 		//draw mouse
+		Point tmp[3] = {Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/2,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/2),
+							Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/4,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/8),
+							Point(mouse->posData->x*PX_PER_UNIT-3*PX_PER_UNIT/4,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/8)};
+		if(mouse->direction == RIGHT)
+		{
+			tmp[1] = Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/8,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/4);
+			tmp[2] = Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/8,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+3*PX_PER_UNIT/4);
+		}
+		else if(mouse->direction == BOTTOM)
+		{
+			tmp[1] = Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/4,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+7*PX_PER_UNIT/8);
+			tmp[2] = Point(mouse->posData->x*PX_PER_UNIT-3*PX_PER_UNIT/4,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+7*PX_PER_UNIT/8);
+		}
+		else if(mouse->direction == LEFT)
+		{
+			tmp[1] = Point(mouse->posData->x*PX_PER_UNIT-7*PX_PER_UNIT/8,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/4);
+			tmp[2] = Point(mouse->posData->x*PX_PER_UNIT-7*PX_PER_UNIT/8,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+3*PX_PER_UNIT/4);
+		}
 		circle(*img,
 				Point((mouse->posData->x)*PX_PER_UNIT - PX_PER_UNIT/2,MAZE_HEIGHT_PX-((mouse->posData->y)*PX_PER_UNIT - PX_PER_UNIT/2)),
 				MOUSE_RADIUS,
 				CV_RGB(255,255,0),
 				MOUSE_OUTLINE_THICKNESS);
+		fillConvexPoly(*img, tmp, 3, Scalar (0, 0, 0));
+
 		//display results
 		imshow(DISPLAY_WINDOW_NAME, *img );
 }
