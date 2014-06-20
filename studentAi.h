@@ -12,7 +12,6 @@
 
 void studentAi(struct mouseData *mouse)
 {
-
 	//example student written AI
 	static bool lastLeft = false;
 	static bool lastRight = false;
