@@ -17,6 +17,24 @@
 
 using namespace cv;
 
+static int filter(const struct dirent* input)
+{
+  const char* ext = string(".txt").c_str();
+  
+  if (input->d_name[0] == '.')
+    return 0;
+  else
+  {
+    size_t j = (strlen(input->d_name)-4);
+    for (int i = 0; j < (strlen(input->d_name)); i++, j++)
+    {
+      if (ext[i] != (input->d_name[j]))
+	return 0;
+    }
+    return 1;
+  }
+}
+
 int main()
 {
 	int userInput;
@@ -56,7 +74,7 @@ int main()
 			string input; const char* c_input;
 			
 			//save file
-			std::cout << "Enter filename to save to: ";
+			std::cout << "Enter filename to save to (without extension): ";
 			cin >> input; 
 			input.append(".txt");
 			c_input = input.c_str();
@@ -74,15 +92,43 @@ int main()
 		}
 		else if(userInput == 'l')
 		{
-			//load file
-			mazeFile = fopen(SAVE_FILE, "r");
-			if(mazeFile != NULL)
-			{
-			  readMazeFromFile(mazeFile, start);
-			}
-			fclose(mazeFile);
-			redrawMaze(&image, start);
+		  struct dirent **dircontents;
+		  string choices[20];
+		  int dirnum, selection;
+		  
+		  cout << endl << "Select file to load: " << endl;
+		  
+		  dirnum = scandir("./", &dircontents, filter, alphasort);
+		  if (dirnum >= 0)
+		  {
+		    for (int i = 0; i < dirnum; i++)
+		    {
+		      choices[i].assign(dircontents[i]->d_name);
+		      cout << i << ") " << choices[i] << endl;
+		    }
+		  }
+		  
+		  cout << endl;
+		  
+		  //load file
+		  cin >> selection;
+		  
+		  if (selection <= dirnum && selection <= 20)
+		  {
+		    mazeFile = fopen(choices[selection].c_str(), "r");
+		    if(mazeFile != NULL)
+		    {
+		      readMazeFromFile(mazeFile, start);
+		      cout << "Maze loaded" << endl;
+		    }
+		    fclose(mazeFile);
+		    redrawMaze(&image, start);
+		  }
+		  
+		  else
+		    cout << "Invalid selection, try another action" << endl;
 		}
+		
 		else if(userInput == 'r')
 		{
 			//reset maze area
