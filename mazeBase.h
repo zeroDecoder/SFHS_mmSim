@@ -123,19 +123,21 @@ bool isWallForward(struct mouseData *mouse)
 	else
 		return 1;
 }
-void saveMaze2File(FILE *dest, struct baseMapNode startNode[][MAZE_HEIGHT])
+int saveMaze2File(FILE *dest, struct baseMapNode startNode[][MAZE_HEIGHT])
 {
-	int i = 0 , j = 0;
+	int i = 0 , j = 0, status;
 	while(i <= MAZE_WIDTH -1 && j <= MAZE_HEIGHT )
 	{
-		fprintf(dest, "%d %d %d %d %d %d\n",startNode[i][j].x, startNode[i][j].y, startNode[i][j].wallTop, startNode[i][j].wallBottom,
-										  startNode[i][j].wallLeft, startNode[i][j].wallRight);
+		status = fprintf(dest, "%d %d %d %d %d %d\n",startNode[i][j].x, startNode[i][j].y, startNode[i][j].wallTop, startNode[i][j].wallBottom,
+			startNode[i][j].wallLeft, startNode[i][j].wallRight);
+		
 		if(++j >= MAZE_HEIGHT)
 		{
 			j = 0;
 			i++;
 		}
 	}
+	return status;
 }
 
 void readMazeFromFile(FILE *maze, struct baseMapNode startNode[][MAZE_HEIGHT])

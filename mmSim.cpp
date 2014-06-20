@@ -12,7 +12,8 @@
 #include"studentAi.h"
 
 #include<iostream>
-
+#include <string>
+#include <dirent.h>
 
 using namespace cv;
 
@@ -41,7 +42,7 @@ int main()
 	//user instructions
 	std::cout << "Press 'q' to quit" << endl;
 	std::cout << "Press 'l' to load maze" <<endl;
-	std::cout << "Press 's' to save maze, NOTE: overwrites current save"<<endl;
+	std::cout << "Press 's' to save maze"<<endl;
 	std::cout << "Press 'r' to reset the maze area"<<endl;
 	std::cout << "Press 'm' to have the mouse start to solve the maze"<<endl;
 	std::cout << "Left click to add a wall"<<endl;
@@ -52,13 +53,23 @@ int main()
 	{
 		if(userInput == 's')
 		{
+			string input; const char* c_input;
+			
 			//save file
-			mazeFile = fopen(SAVE_FILE, "w");
+			std::cout << "Enter filename to save to: ";
+			cin >> input; 
+			input.append(".txt");
+			c_input = input.c_str();
+			
+			mazeFile = fopen(c_input, "w");
 			if(mazeFile == NULL)
 			{
 				exit(100);
 			}
-			saveMaze2File(mazeFile, start);
+			if(saveMaze2File(mazeFile, start) >= 0)
+			  cout << "File saved successfully";
+			else
+			  cout << "File could not be written properly";
 			fclose(mazeFile);
 		}
 		else if(userInput == 'l')
@@ -67,7 +78,7 @@ int main()
 			mazeFile = fopen(SAVE_FILE, "r");
 			if(mazeFile != NULL)
 			{
-				readMazeFromFile(mazeFile, start);
+			  readMazeFromFile(mazeFile, start);
 			}
 			fclose(mazeFile);
 			redrawMaze(&image, start);
