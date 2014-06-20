@@ -1,5 +1,5 @@
 /*
- * studentAi.h
+ * studenAi.h
  *
  *  Created on: Jun 12, 2014
  *      Author: zeros

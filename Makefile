@@ -1,12 +1,13 @@
 CC=g++
-CFLAGS=-Wall -ansi -O2 -lopencv_core -lopencv_highgui -std=c++11
+CFLAGS=-Wall -Wno-unused-result -ansi -O2 -std=c++11
+LIBS=-lopencv_core -lopencv_features2d -lopencv_highgui
 
 TARGET=main
 HEADERS=gui.h mazeBase.h mazeConst.h studentAi.h
 SOURCES=mmSim.cpp
 
 all:	$(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES) $(LIBS)
 
 clean:
 	rm -f $(TARGET)
