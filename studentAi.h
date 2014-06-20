@@ -8,7 +8,7 @@
 #ifndef STUDENAI_H_
 #define STUDENAI_H_
 
-#include"mazebase.h"
+#include"mazeBase.h"
 
 void studentAi(struct mouseData *mouse)
 {
