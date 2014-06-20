@@ -6,7 +6,7 @@
 // Description : Micro mouse simulation software for SFHS robotics students
 //============================================================================
 
-#include"mazebase.h"
+#include"mazeBase.h"
 #include"mazeConst.h"
 #include"gui.h"
 #include"studentAi.h"
