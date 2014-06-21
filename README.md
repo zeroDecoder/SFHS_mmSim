@@ -1,4 +1,4 @@
-SFHS_mmSim
+SFRT Micro-Mouse Simulator
 ==========
 
 Micro-mouse sim software for SFHS robotics team.
