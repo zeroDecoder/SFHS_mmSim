@@ -137,6 +137,11 @@ int saveMaze2File(FILE *dest, struct baseMapNode startNode[][MAZE_HEIGHT])
 			i++;
 		}
 	}
+	
+	if(status >= 0)
+	  cout << "File saved successfully";
+	else
+	  cout << "File could not be written properly";
 	return status;
 }
 

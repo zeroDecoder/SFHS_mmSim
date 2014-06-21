@@ -19,7 +19,7 @@ using namespace cv;
 
 static int filter(const struct dirent* input)
 {
-  const char* ext = string(".txt").c_str();
+  const char* ext = string(".maz").c_str();
   
   if (input->d_name[0] == '.')
     return 0;
@@ -76,7 +76,7 @@ int main()
 			//save file
 			std::cout << "Enter filename to save to (without extension): ";
 			cin >> input; 
-			input.append(".txt");
+			input.append(".maz");
 			c_input = input.c_str();
 			
 			mazeFile = fopen(c_input, "w");
@@ -84,10 +84,6 @@ int main()
 			{
 				exit(100);
 			}
-			if(saveMaze2File(mazeFile, start) >= 0)
-			  cout << "File saved successfully";
-			else
-			  cout << "File could not be written properly";
 			fclose(mazeFile);
 		}
 		else if(userInput == 'l')
