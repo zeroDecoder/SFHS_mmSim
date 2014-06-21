@@ -74,7 +74,7 @@ int main()
 			string input; const char* c_input;
 			
 			//save file
-			std::cout << "Enter filename to save to (without extension): ";
+			cout << "Enter filename to save to (without extension): ";
 			cin >> input; 
 			input.append(".maz");
 			c_input = input.c_str();
@@ -84,6 +84,7 @@ int main()
 			{
 				exit(100);
 			}
+			saveMaze2File(mazeFile, start);
 			fclose(mazeFile);
 		}
 		else if(userInput == 'l')

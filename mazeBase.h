@@ -125,7 +125,7 @@ bool isWallForward(struct mouseData *mouse)
 }
 int saveMaze2File(FILE *dest, struct baseMapNode startNode[][MAZE_HEIGHT])
 {
-	int i = 0 , j = 0, status;
+	int i = 0 , j = 0,status;
 	while(i <= MAZE_WIDTH -1 && j <= MAZE_HEIGHT )
 	{
 		status = fprintf(dest, "%d %d %d %d %d %d\n",startNode[i][j].x, startNode[i][j].y, startNode[i][j].wallTop, startNode[i][j].wallBottom,
@@ -138,10 +138,10 @@ int saveMaze2File(FILE *dest, struct baseMapNode startNode[][MAZE_HEIGHT])
 		}
 	}
 	
-	if(status >= 0)
-	  cout << "File saved successfully";
+	if(status != -1)
+	  cout << "File saved successfully"<<endl;
 	else
-	  cout << "File could not be written properly";
+	  cout << "File could not be written properly" <<endl;
 	return status;
 }
 
