@@ -22,6 +22,10 @@
 #define MOUSE_OUTLINE_THICKNESS 9
 #define MOUSE_RADIUS 7
 
+#define UI_INPUT_LOCATION Point(0,MAZE_HEIGHT_PX-PX_PER_UNIT/4)
+#define GUI_MAXLEN 40
+#define GUI_MAXLINE 18
+
 #define TOP 0
 #define RIGHT 1
 #define BOTTOM 2

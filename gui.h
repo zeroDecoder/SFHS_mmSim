@@ -12,6 +12,7 @@
 #include "mazeBase.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include<string>
 
 using namespace cv;
 
@@ -21,6 +22,60 @@ struct callbackWrapper
 	Mat *img;
 };
 
+void clearUiInputArea(Mat *img)
+{
+	rectangle(*img,Point(0,MAZE_HEIGHT_PX-PX_PER_UNIT), Point(MAZE_WIDTH_PX,MAZE_HEIGHT_PX), CV_RGB(0,0,0),CV_FILLED);
+}
+
+void clearUiPrintArea(Mat *img)
+{
+	rectangle(*img,Point(0,0), Point(MAZE_WIDTH_PX,MAZE_HEIGHT_PX-PX_PER_UNIT), CV_RGB(0,0,0),CV_FILLED);
+}
+
+int cvPrint(Mat *img, std::string text)
+{
+	static int lineNum =0;
+	if(!text.compare(""))
+	{
+		lineNum =0;
+		clearUiPrintArea(img);
+	}
+	else if(lineNum++ < GUI_MAXLINE) //if there's space print the line and increment the line number
+	{
+		putText(*img, text.c_str(), Point(0,lineNum*PX_PER_UNIT), FONT_HERSHEY_SIMPLEX, 1,
+					CV_RGB(0,0,255), 2);
+	}
+	else
+	{
+		return -1; //if the line wasn't printed return -1
+	}
+	return lineNum;
+}
+
+std::string cvIn(Mat *img)
+{
+	char inputKey;
+	std::string inputString ("");
+
+	while((inputKey = waitKey(100)) != '\r' && cvGetWindowHandle(DISPLAY_WINDOW_NAME))
+	{
+		if (inputKey != -1)
+		{
+			if (inputKey == '\b')
+			{
+				if (inputString.size() > 0)
+					inputString.resize(inputString.size() - 1);
+			} else
+				inputString += inputKey;
+		}
+		//redraw text
+		clearUiInputArea(img);
+		putText(*img, inputString, UI_INPUT_LOCATION, FONT_HERSHEY_SIMPLEX, 1,
+				CV_RGB(0,0,255), 2);
+		imshow(DISPLAY_WINDOW_NAME, *img);
+	}
+	return inputString;
+}
 
 void redrawMaze(Mat *img, struct baseMapNode startNode[][MAZE_HEIGHT], struct mouseData *mouse)
 {
@@ -273,8 +328,6 @@ void mouseCallBackFunc(int event, int x, int y, int flags, void* ptr)
 				}
 				data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].wallRight = false;
 				data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].right = &(data->startNode[(int)(x/PX_PER_UNIT)+1][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)]);
-
-
 			}
 			else
 			{

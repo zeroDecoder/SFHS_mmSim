@@ -6,14 +6,19 @@
 // Description : Micro mouse simulation software for SFHS robotics students
 //============================================================================
 
+
 #include"mazeBase.h"
 #include"mazeConst.h"
 #include"gui.h"
 #include"studentAi.h"
 
+#define win32 1
+
+#include <dirent.h>
 #include<iostream>
 #include <string>
-#include <dirent.h>
+
+
 
 using namespace cv;
 
@@ -49,6 +54,9 @@ int main()
 
 	//create game board
 	Mat image(MAZE_WIDTH*PX_PER_UNIT, MAZE_HEIGHT*PX_PER_UNIT, CV_8UC3, Scalar(0,0,0));
+	Mat guiText(MAZE_WIDTH*PX_PER_UNIT, MAZE_HEIGHT*PX_PER_UNIT, CV_8UC3, Scalar(0,0,0));
+
+	namedWindow( DISPLAY_WINDOW_NAME, WINDOW_NORMAL);
 	redrawMaze(&image, start);
 
 	//create mouse call back
@@ -66,29 +74,70 @@ int main()
 	std::cout << "Left click to add a wall"<<endl;
 	std::cout << "Right click to remove a wall"<<endl;
 
-
 	while((userInput =waitKey(1))!= 'q')
 	{
-		if(userInput == 's')
+
+		if (!cvGetWindowHandle(DISPLAY_WINDOW_NAME))//if window is closed clean up and exit
 		{
-			string input; const char* c_input;
-			
+			break;
+		}
+		else if (userInput == 's')
+		{
+			string input;
+
 			//save file
 			cout << "Enter filename to save to (without extension): ";
-			cin >> input; 
+			cvPrint(&guiText,"Enter filename to save to (without extension): " );
+			input = cvIn(&guiText);
 			input.append(".maz");
-			c_input = input.c_str();
-			
-			mazeFile = fopen(c_input, "w");
+
+			mazeFile = fopen(input.c_str(), "w");
 			if(mazeFile == NULL)
 			{
 				exit(100);
 			}
 			saveMaze2File(mazeFile, start);
 			fclose(mazeFile);
+			redrawMaze(&image, start);
 		}
 		else if(userInput == 'l')
 		{
+#ifdef win32
+			DIR *local = opendir(".");
+			struct dirent *dircontents = readdir(local);
+			int selection;
+			std::ostringstream buff ("");
+
+			do{
+				buff << telldir(local) << ": " << dircontents->d_name;
+				cvPrint(&guiText,buff.str());
+				cout << buff.str() <<endl;
+				buff.str("");
+				buff.clear();
+				dircontents = readdir(local);
+			}while(dircontents != NULL);
+
+			do {
+				cout << endl << "Select file to load: " << endl;
+				selection = atoi(cvIn(&guiText).c_str());
+				rewinddir(local);
+				seekdir(local, selection - 1);
+				dircontents = readdir(local);
+
+				if(!cvGetWindowHandle(DISPLAY_WINDOW_NAME)) break; //if the user closed the window break
+			} while (dircontents == NULL || dircontents->d_type != 0);
+			cvPrint(&guiText, "");
+			mazeFile = fopen(dircontents->d_name, "r");
+			if(mazeFile == NULL)
+			{
+				exit(101);
+			}
+			readMazeFromFile(mazeFile, start);
+			cout << "Maze loaded" << endl;
+
+			fclose(mazeFile);
+			redrawMaze(&image, start);
+#else
 		  struct dirent **dircontents;
 		  string choices[20];
 		  int dirnum, selection;
@@ -104,7 +153,7 @@ int main()
 		      cout << i << ") " << choices[i] << endl;
 		    }
 		  }
-		  
+
 		  cout << endl;
 		  
 		  //load file
@@ -124,8 +173,9 @@ int main()
 		  
 		  else
 		    cout << "Invalid selection, try another action" << endl;
+#endif
 		}
-		
+
 		else if(userInput == 'r')
 		{
 			//reset maze area
@@ -146,7 +196,7 @@ int main()
 			}
 			cout << "The AI says the mouse has finished the maze!"<<endl;
 		}
-	}
 
+	}
 	return 0;
 }
