@@ -190,10 +190,6 @@ int main()
 			{
 				studentAi(&mouse);
 				redrawMaze(&image, start, &mouse);
-				if(waitKey(10) == 'q')
-				{
-					break;
-				}
 			}
 			cout << "The AI says the mouse has finished the maze!"<<endl;
 		}
