@@ -19,18 +19,15 @@ using namespace cv;
 void drawGreenSquare(Mat *img, int x, int y)
 {
 	//draw square
-	Mat greenSquare(MAZE_WIDTH*PX_PER_UNIT, MAZE_HEIGHT*PX_PER_UNIT, CV_8UC3, Scalar(0,0,0));
-	rectangle(greenSquare, Point(x*PX_PER_UNIT+PX_PER_UNIT/6, MAZE_HEIGHT_PX-(y*PX_PER_UNIT+PX_PER_UNIT/6)), Point(x*PX_PER_UNIT+PX_PER_UNIT-PX_PER_UNIT/6,MAZE_HEIGHT_PX-(y*PX_PER_UNIT+PX_PER_UNIT-PX_PER_UNIT/6)), CV_RGB(131,255,89), CV_FILLED);
-	//merge square to frame
-	*img += greenSquare;
+	rectangle(*img, Point(x*PX_PER_UNIT+PX_PER_UNIT/6, MAZE_HEIGHT_PX-(y*PX_PER_UNIT+PX_PER_UNIT/6)), Point(x*PX_PER_UNIT+PX_PER_UNIT-PX_PER_UNIT/6,MAZE_HEIGHT_PX-(y*PX_PER_UNIT+PX_PER_UNIT-PX_PER_UNIT/6)), CV_RGB(131,255,89), CV_FILLED);
 }
 
 void highlightFinish(Mat *img, struct baseMapNode maze[][MAZE_HEIGHT])
 {
-	int found = false;
-	for(int i=0; i<MAZE_HEIGHT && !found; i++)
+
+	for(int i=0; i<MAZE_HEIGHT; i++)
 	{
-		for(int j=0; j<MAZE_WIDTH && !found; j++)
+		for(int j=0; j<MAZE_WIDTH; j++)
 		{
 			if(maze[i][j].right != NULL)
 			{
@@ -40,7 +37,6 @@ void highlightFinish(Mat *img, struct baseMapNode maze[][MAZE_HEIGHT])
 					{
 						if(maze[i][j].right->top->left->bottom == &(maze[i][j]))
 						{
-							found = true;
 							drawGreenSquare(img, i, j);
 							drawGreenSquare(img, i, j+1);
 							drawGreenSquare(img, i+1, j);

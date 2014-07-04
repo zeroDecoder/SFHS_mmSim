@@ -11,6 +11,7 @@
 #include"mazeConst.h"
 #include"gui.h"
 #include"studentAi.h"
+#include"time.h"
 
 #define win32 1
 
@@ -185,11 +186,11 @@ int main()
 		else if(userInput == 'm')
 		{
 			resetMouse(&mouse, &(start[0][0]));
-			while(mouse.foundFinish != true)
+			while(mouse.foundFinish != true && waitKey(100) == -1)
 			{
 				studentAi(&mouse);
 				redrawMaze(&image, start, &mouse);
-				if(waitKey(90) == 'q')
+				if(waitKey(10) == 'q')
 				{
 					break;
 				}
