@@ -16,6 +16,44 @@
 
 using namespace cv;
 
+void drawGreenSquare(Mat *img, int x, int y)
+{
+	//draw square
+	Mat greenSquare(MAZE_WIDTH*PX_PER_UNIT, MAZE_HEIGHT*PX_PER_UNIT, CV_8UC3, Scalar(0,0,0));
+	rectangle(greenSquare, Point(x*PX_PER_UNIT+PX_PER_UNIT/6, MAZE_HEIGHT_PX-(y*PX_PER_UNIT+PX_PER_UNIT/6)), Point(x*PX_PER_UNIT+PX_PER_UNIT-PX_PER_UNIT/6,MAZE_HEIGHT_PX-(y*PX_PER_UNIT+PX_PER_UNIT-PX_PER_UNIT/6)), CV_RGB(131,255,89), CV_FILLED);
+	//merge square to frame
+	*img += greenSquare;
+}
+
+void highlightFinish(Mat *img, struct baseMapNode maze[][MAZE_HEIGHT])
+{
+	int found = false;
+	for(int i=0; i<MAZE_HEIGHT && !found; i++)
+	{
+		for(int j=0; j<MAZE_WIDTH && !found; j++)
+		{
+			if(maze[i][j].right != NULL)
+			{
+				if(maze[i][j].right->top != NULL)
+				{
+					if(maze[i][j].right->top->left != NULL)
+					{
+						if(maze[i][j].right->top->left->bottom == &(maze[i][j]))
+						{
+							found = true;
+							drawGreenSquare(img, i, j);
+							drawGreenSquare(img, i, j+1);
+							drawGreenSquare(img, i+1, j);
+							drawGreenSquare(img, i+1, j+1);
+						}
+					}
+				}
+
+			}
+		}
+	}
+}
+
 struct callbackWrapper
 {
 	struct baseMapNode (*startNode)[MAZE_HEIGHT];
@@ -145,6 +183,9 @@ void redrawMaze(Mat *img, struct baseMapNode startNode[][MAZE_HEIGHT], struct mo
 			}
 		}
 
+		//highlight finish
+		highlightFinish(img, startNode);
+
 		//draw mouse
 		Point tmp[3] = {Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/2,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/2),
 							Point(mouse->posData->x*PX_PER_UNIT-PX_PER_UNIT/4,MAZE_HEIGHT_PX-mouse->posData->y*PX_PER_UNIT+PX_PER_UNIT/8),
@@ -259,7 +300,7 @@ void mouseCallBackFunc(int event, int x, int y, int flags, void* ptr)
 			//
 			if(x%PX_PER_UNIT>=PX_PER_UNIT/2)
 			{
-				if((int)(x/PX_PER_UNIT) != MAZE_WIDTH)
+				if((int)(x/PX_PER_UNIT) != MAZE_WIDTH -1)
 				{
 					data->startNode[(int)(x/PX_PER_UNIT)+1][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].wallLeft = true;
 					data->startNode[(int)(x/PX_PER_UNIT)+1][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].left = NULL;
@@ -301,7 +342,7 @@ void mouseCallBackFunc(int event, int x, int y, int flags, void* ptr)
 				data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].wallTop = true;
 				data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].top = NULL;
 
-				if((MAZE_HEIGHT_PX-y)/PX_PER_UNIT != MAZE_HEIGHT)
+				if(((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1 != MAZE_HEIGHT)
 				{
 					data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1].wallBottom = true;
 					data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1].bottom = NULL;
@@ -321,7 +362,7 @@ void mouseCallBackFunc(int event, int x, int y, int flags, void* ptr)
 			//
 			if(x%PX_PER_UNIT>=PX_PER_UNIT/2)
 			{
-				if((int)(x/PX_PER_UNIT) != MAZE_WIDTH)
+				if((int)(x/PX_PER_UNIT) != MAZE_WIDTH -1)
 				{
 					data->startNode[(int)(x/PX_PER_UNIT)+1][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].wallLeft = false;
 					data->startNode[(int)(x/PX_PER_UNIT)+1][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].left = &(data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)]);
@@ -361,7 +402,7 @@ void mouseCallBackFunc(int event, int x, int y, int flags, void* ptr)
 				data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].wallTop = false;
 				data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)].top = &(data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1]);
 
-				if((MAZE_HEIGHT_PX-y)/PX_PER_UNIT != MAZE_HEIGHT)
+				if(((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1 != MAZE_HEIGHT)
 				{
 					data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1].wallBottom = false;
 					data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)+1].bottom = &(data->startNode[(int)(x/PX_PER_UNIT)][(int)((MAZE_HEIGHT_PX-y)/PX_PER_UNIT)]);

@@ -109,10 +109,10 @@ int main()
 			std::ostringstream buff ("");
 
 			do{
-				buff << telldir(local) << ": " << dircontents->d_name;
+				buff << telldir(local) << ": " << dircontents->d_name; //setup output string
 				cvPrint(&guiText,buff.str());
 				cout << buff.str() <<endl;
-				buff.str("");
+				buff.str("");//clear string buffer for next loop
 				buff.clear();
 				dircontents = readdir(local);
 			}while(dircontents != NULL);
@@ -189,7 +189,7 @@ int main()
 			{
 				studentAi(&mouse);
 				redrawMaze(&image, start, &mouse);
-				if(waitKey(500) == 'q')
+				if(waitKey(90) == 'q')
 				{
 					break;
 				}
