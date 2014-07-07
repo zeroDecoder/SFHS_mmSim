@@ -1,19 +1,17 @@
 //============================================================================
 // Name        : mmSim.cpp
 // Author      : Elis Pogace
-// Version     : 0.1
+// Version     : 1.0
 // Created on  : Jun 11, 2014
 // Description : Micro mouse simulation software for SFHS robotics students
 //============================================================================
-
 
 #include"mazeBase.h"
 #include"mazeConst.h"
 #include"gui.h"
 #include"studentAi.h"
 #include"time.h"
-
-#define win32 1
+#include"string.h"
 
 #include <dirent.h>
 #include<iostream>
@@ -23,31 +21,15 @@
 
 using namespace cv;
 
-static int filter(const struct dirent* input)
-{
-  const char* ext = string(".maz").c_str();
-  
-  if (input->d_name[0] == '.')
-    return 0;
-  else
-  {
-    size_t j = (strlen(input->d_name)-4);
-    for (int i = 0; j < (strlen(input->d_name)); i++, j++)
-    {
-      if (ext[i] != (input->d_name[j]))
-	return 0;
-    }
-    return 1;
-  }
-}
 
 int main()
 {
+
 	int userInput;
 
 	struct baseMapNode start[MAZE_WIDTH][MAZE_HEIGHT];
 	struct mouseData mouse;
-	FILE *mazeFile;
+	FILE *mazeFile = NULL;
 
 	//new maze construction
 	newMazeArea(start, MAZE_WIDTH, MAZE_HEIGHT);
@@ -103,78 +85,48 @@ int main()
 		}
 		else if(userInput == 'l')
 		{
-#ifdef win32
 			DIR *local = opendir(".");
 			struct dirent *dircontents = readdir(local);
 			int selection;
+			int fileNum =0;
+			vector<std::string> fileNames;
 			std::ostringstream buff ("");
 
+			fileNames.clear();
 			do{
-				buff << telldir(local) << ": " << dircontents->d_name; //setup output string
-				cvPrint(&guiText,buff.str());
-				cout << buff.str() <<endl;
-				buff.str("");//clear string buffer for next loop
-				buff.clear();
+				if(strstr(dircontents->d_name, ".maz")) //check to see if it is a maze file
+				{
+					//print selection number and filename
+					buff << fileNum+1 << ": " << dircontents->d_name;
+					fileNames.push_back(dircontents->d_name);
+					cvPrint(&guiText,buff.str().c_str());
+					fileNum++;
+
+					//clear string buffer for next loop
+					buff.str("");
+					buff.clear();
+				}
 				dircontents = readdir(local);
 			}while(dircontents != NULL);
 
 			do {
 				cout << endl << "Select file to load: " << endl;
-				selection = atoi(cvIn(&guiText).c_str());
-				rewinddir(local);
-				seekdir(local, selection - 1);
-				dircontents = readdir(local);
+				selection = atoi(cvIn(&guiText).c_str())-1;
+				if(selection >= 0 && selection < fileNum) //check if user input is within range
+					mazeFile = fopen(fileNames.at(selection).c_str(), "r");
+				else
+					mazeFile = NULL;
 
 				if(!cvGetWindowHandle(DISPLAY_WINDOW_NAME)) break; //if the user closed the window break
-			} while (dircontents == NULL || dircontents->d_type != 0);
+			} while (mazeFile == NULL);
 			cvPrint(&guiText, "");
-			mazeFile = fopen(dircontents->d_name, "r");
-			if(mazeFile == NULL)
-			{
-				exit(101);
-			}
+
 			readMazeFromFile(mazeFile, start);
+
 			cout << "Maze loaded" << endl;
 
 			fclose(mazeFile);
 			redrawMaze(&image, start);
-#else
-		  struct dirent **dircontents;
-		  string choices[20];
-		  int dirnum, selection;
-		  
-		  cout << endl << "Select file to load: " << endl;
-		  
-		  dirnum = scandir("./", &dircontents, filter, alphasort);
-		  if (dirnum >= 0)
-		  {
-		    for (int i = 0; i < dirnum; i++)
-		    {
-		      choices[i].assign(dircontents[i]->d_name);
-		      cout << i << ") " << choices[i] << endl;
-		    }
-		  }
-
-		  cout << endl;
-		  
-		  //load file
-		  cin >> selection;
-		  
-		  if (selection <= dirnum && selection <= 20)
-		  {
-		    mazeFile = fopen(choices[selection].c_str(), "r");
-		    if(mazeFile != NULL)
-		    {
-		      readMazeFromFile(mazeFile, start);
-		      cout << "Maze loaded" << endl;
-		    }
-		    fclose(mazeFile);
-		    redrawMaze(&image, start);
-		  }
-		  
-		  else
-		    cout << "Invalid selection, try another action" << endl;
-#endif
 		}
 
 		else if(userInput == 'r')
