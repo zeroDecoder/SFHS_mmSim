@@ -15,6 +15,9 @@ TEMPLATE = app
 SOURCES += main.cpp\
         micromouseserver.cpp
 
-HEADERS  += micromouseserver.h
+HEADERS  += micromouseserver.h \
+    mazeConst.h \
+    mazeBase.h \
+    gui.h
 
 FORMS    += micromouseserver.ui
