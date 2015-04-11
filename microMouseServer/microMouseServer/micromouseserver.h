@@ -1,10 +1,12 @@
 #ifndef MICROMOUSESERVER_H
 #define MICROMOUSESERVER_H
-
+#include "mazeConst.h"
+#include "mazeBase.h"
 #include <QMainWindow>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsItem>
+#include <vector>
 
 namespace Ui {
 class microMouseServer;
@@ -20,12 +22,24 @@ public:
 
 private slots:
     void on_tabWidget_tabBarClicked(int index);
+    void loadMaze();
+    void saveMaze();
+    void redrawMaze();
 
 private:
     Ui::microMouseServer *ui;
 
     QGraphicsScene *map;
-    QGraphicsEllipseItem *mouse;
+
+    std::vector<QGraphicsLineItem*> backgroundGrid;
+    QGraphicsItemGroup *bgGrid;
+    QGraphicsItemGroup *mazeWalls;
+    struct baseMapNode mazeData[MAZE_WIDTH][MAZE_HEIGHT];
+
+    void linkMenu();
+    void drawMaze();
+    void drawGuideLines();
+    void removeGuideLines();
 };
 
 #endif // MICROMOUSESERVER_H

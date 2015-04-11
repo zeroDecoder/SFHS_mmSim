@@ -17,7 +17,6 @@ SOURCES += main.cpp\
 
 HEADERS  += micromouseserver.h \
     mazeConst.h \
-    mazeBase.h \
-    gui.h
+    mazeBase.h
 
 FORMS    += micromouseserver.ui
