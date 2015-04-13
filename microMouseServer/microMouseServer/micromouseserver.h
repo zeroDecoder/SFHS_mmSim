@@ -27,7 +27,7 @@ private slots:
     void on_tabWidget_tabBarClicked(int index);
     void loadMaze();
     void saveMaze();
-    void addWall(QLineF *wall);
+    void addWall(QLineF wall);
 
 private:
     Ui::microMouseServer *ui;

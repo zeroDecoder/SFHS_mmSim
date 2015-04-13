@@ -16,7 +16,7 @@ microMouseServer::microMouseServer(QWidget *parent) :
     //setup ui and interface
     ui->setupUi(this);
     linkMenu();
-    connect(this->map, SIGNAL(passWall(QLineF*)), this, SLOT(addWall(QLineF*)));
+    connect(this->map, SIGNAL(passWall(QLineF)), this, SLOT(addWall(QLineF)));
 
     //setup graphics scene
     ui->graphics->setBackgroundBrush(QBrush(Qt::black));
@@ -272,9 +272,10 @@ void microMouseServer::removeGuideLines()
     }
 }
 
-void microMouseServer::addWall(QLineF *wall)
+void microMouseServer::addWall(QLineF wall)
 {
-    this->mazeWalls->addToGroup(this->map->addLine(*wall, this->map->wallPen()));
+    qDebug("creating wall");
+    this->mazeWalls->addToGroup(this->map->addLine(wall, this->map->wallPen()));
 }
 
 

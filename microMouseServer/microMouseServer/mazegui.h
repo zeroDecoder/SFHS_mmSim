@@ -13,12 +13,13 @@ public:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
 
 signals:
-    void passWall(QLineF *wall);
+    void passWall(QLineF wall);
 
 public slots:
 
 private:
     QPen *_wallPen;
+    QPen *_guidePen;
 
 };
 
