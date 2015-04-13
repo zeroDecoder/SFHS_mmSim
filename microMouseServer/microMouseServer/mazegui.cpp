@@ -14,12 +14,13 @@ mazeGui::mazeGui(QObject *parent) :
 }
 void mazeGui::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
+    qDebug("pos %f, %f",mouseEvent->scenePos().x(), mouseEvent->scenePos().y());
     //check if mouse event is a left click inside of the maze
     if(mouseEvent->button() == Qt::LeftButton &&
             mouseEvent->scenePos().x() > 0 &&
             mouseEvent->scenePos().y() > 0 &&
-            mouseEvent->scenePos().x() <= MAZE_WIDTH_PX &&
-            mouseEvent->scenePos().y() <= MAZE_HEIGHT_PX)
+            mouseEvent->scenePos().x() < MAZE_WIDTH_PX &&
+            mouseEvent->scenePos().y() < MAZE_HEIGHT_PX)
     {
 
         int xmod = (int)mouseEvent->scenePos().x() % PX_PER_UNIT;
@@ -31,22 +32,22 @@ void mazeGui::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         {
             if(xmod >= PX_PER_UNIT /2)
             {
-                emit passWall(QLineF((xpos+1) * PX_PER_UNIT,ypos * PX_PER_UNIT, (xpos+1) * PX_PER_UNIT,(ypos+1) * PX_PER_UNIT));
+                emit passRightWall(QPoint(xpos, ypos));
             }
             else
             {
-                emit passWall(QLineF(xpos * PX_PER_UNIT,ypos * PX_PER_UNIT, xpos * PX_PER_UNIT,(ypos+1) * PX_PER_UNIT));
+                emit passLeftWall(QPoint(xpos, ypos));
             }
         }
         else if((ymod < PX_PER_UNIT/3  || ymod > 2*PX_PER_UNIT/3 )&& xmod > PX_PER_UNIT/3  && xmod < 2*PX_PER_UNIT/3)
         {
             if(ymod >= PX_PER_UNIT/2 || ymod == 0)
             {
-                emit passWall(QLineF(xpos* PX_PER_UNIT, (ypos+1)* PX_PER_UNIT, (xpos+1)* PX_PER_UNIT, (ypos+1)* PX_PER_UNIT));
+                emit passTopWall(QPoint(xpos, ypos));
             }
             else
             {
-                emit passWall(QLineF(xpos* PX_PER_UNIT,ypos* PX_PER_UNIT,(xpos+1)* PX_PER_UNIT, ypos* PX_PER_UNIT));
+                emit passBottomWall(QPoint(xpos, ypos));
             }
         }
     }

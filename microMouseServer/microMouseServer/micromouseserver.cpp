@@ -16,9 +16,13 @@ microMouseServer::microMouseServer(QWidget *parent) :
     //setup ui and interface
     ui->setupUi(this);
     linkMenu();
-    connect(this->map, SIGNAL(passWall(QLineF)), this, SLOT(addWall(QLineF)));
+    connect(this->map, SIGNAL(passTopWall(QPoint)), this, SLOT(addTopWall(QPoint)));
+    connect(this->map, SIGNAL(passBottomWall(QPoint)), this, SLOT(addBottomWall(QPoint)));
+    connect(this->map, SIGNAL(passLeftWall(QPoint)), this, SLOT(addLeftWall(QPoint)));
+    connect(this->map, SIGNAL(passRightWall(QPoint)), this, SLOT(addRightWall(QPoint)));
 
     //setup graphics scene
+    ui->graphics->scale(1,-1);
     ui->graphics->setBackgroundBrush(QBrush(Qt::black));
     ui->graphics->setAutoFillBackground(true);
     bgGrid = map->createItemGroup(map->selectedItems());
@@ -217,14 +221,14 @@ void microMouseServer::drawMaze()
             {
                 this->mazeWalls->addToGroup(
                             this->map->addLine(
-                                QLineF(i*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-j*PX_PER_UNIT,(i+1)*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-j*PX_PER_UNIT),
+                                QLineF(i*PX_PER_UNIT,j*PX_PER_UNIT,(i+1)*PX_PER_UNIT,j*PX_PER_UNIT),
                                 wallPen));
             }
             if(this->mazeData[i][j].wallTop)
             {
                 this->mazeWalls->addToGroup(
                             this->map->addLine(
-                                QLineF(i*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-(j+1)*PX_PER_UNIT,(i+1)*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-(j+1)*PX_PER_UNIT),
+                                QLineF(i*PX_PER_UNIT,(j+1)*PX_PER_UNIT,(i+1)*PX_PER_UNIT,(j+1)*PX_PER_UNIT),
                                 wallPen));
 
             }
@@ -232,14 +236,14 @@ void microMouseServer::drawMaze()
             {
                 this->mazeWalls->addToGroup(
                             this->map->addLine(
-                                QLineF(i*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-j*PX_PER_UNIT, i*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-(j+1)*PX_PER_UNIT),
+                                QLineF(i*PX_PER_UNIT,j*PX_PER_UNIT, i*PX_PER_UNIT,(j+1)*PX_PER_UNIT),
                                 wallPen));
             }
             if(this->mazeData[i][j].wallRight)
             {
                 this->mazeWalls->addToGroup(
                             this->map->addLine(
-                                QLineF((i+1)*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-j*PX_PER_UNIT,(i+1)*PX_PER_UNIT,MAZE_WIDTH*PX_PER_UNIT-(j+1)*PX_PER_UNIT),
+                                QLineF((i+1)*PX_PER_UNIT,j*PX_PER_UNIT,(i+1)*PX_PER_UNIT,(j+1)*PX_PER_UNIT),
                                 wallPen));
             }
         }
@@ -272,11 +276,58 @@ void microMouseServer::removeGuideLines()
     }
 }
 
-void microMouseServer::addWall(QLineF wall)
+void microMouseServer::addTopWall(QPoint cell)
 {
-    qDebug("creating wall");
-    this->mazeWalls->addToGroup(this->map->addLine(wall, this->map->wallPen()));
+    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, (cell.x()+1)*PX_PER_UNIT, cell.y()*PX_PER_UNIT),this->map->wallPen()));
+    baseMapNode *currPos = &this->mazeData[(int)cell.x()][cell.y()-1];
+    if(!currPos->wallTop)
+    {
+        currPos->top->wallBottom=true;
+        currPos->top->bottom=NULL;
+    }
+    currPos->wallTop =true;
+    currPos->top=NULL;
 }
 
+
+void microMouseServer::addBottomWall(QPoint cell)
+{
+    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, (cell.x()+1)*PX_PER_UNIT, cell.y()*PX_PER_UNIT),this->map->wallPen()));
+    baseMapNode *currPos = &this->mazeData[cell.x()][cell.y()];
+    if(!currPos->wallBottom)
+    {
+        currPos->bottom->wallTop=true;
+        currPos->bottom->top=NULL;
+    }
+    currPos->wallBottom = true;
+    currPos->bottom=NULL;
+}
+
+void microMouseServer::addLeftWall(QPoint cell)
+{
+    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, cell.x()*PX_PER_UNIT, (cell.y()+1)*PX_PER_UNIT),this->map->wallPen()));
+    baseMapNode *currPos = &this->mazeData[cell.x()][cell.y()];
+    if(!currPos->wallLeft)
+    {
+        currPos->left->wallRight = true;
+        currPos->left->right = NULL;
+    }
+    currPos->wallLeft = true;
+    currPos->right=NULL;
+}
+
+
+void microMouseServer::addRightWall(QPoint cell)
+{
+    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, cell.x()*PX_PER_UNIT, (cell.y()+1)*PX_PER_UNIT),this->map->wallPen()));
+    baseMapNode *currPos = &this->mazeData[cell.x()-1][cell.y()];
+    if(!currPos->wallRight)
+    {
+        currPos->right->wallLeft = true;
+        currPos->right->left = NULL;
+    }
+    currPos->wallRight = true;
+    currPos->right=NULL;
+}
 
 

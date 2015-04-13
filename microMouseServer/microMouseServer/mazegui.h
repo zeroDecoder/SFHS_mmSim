@@ -13,7 +13,10 @@ public:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
 
 signals:
-    void passWall(QLineF wall);
+    void passRightWall(QPoint cell);
+    void passLeftWall(QPoint cell);
+    void passTopWall(QPoint cell);
+    void passBottomWall(QPoint cell);
 
 public slots:
 
