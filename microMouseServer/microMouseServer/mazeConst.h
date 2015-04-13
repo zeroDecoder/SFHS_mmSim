@@ -7,8 +7,7 @@
 
 #ifndef MAZECONST_H_
 #define MAZECONST_H_
-
-#define PX_PER_UNIT 40
+#define PX_PER_UNIT 35
 #define MAZE_HEIGHT 20
 #define MAZE_WIDTH 20
 #define MAZE_HEIGHT_PX PX_PER_UNIT*MAZE_HEIGHT

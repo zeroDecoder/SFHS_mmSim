@@ -6,7 +6,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsItem>
-#include <vector>
+#include <QEvent>
+#include <QGraphicsSceneMouseEvent>
 
 namespace Ui {
 class microMouseServer;
@@ -18,13 +19,13 @@ class microMouseServer : public QMainWindow
 
 public:
     explicit microMouseServer(QWidget *parent = 0);
+    virtual void mouseClick(QGraphicsSceneMouseEvent * mouseEvent);
     ~microMouseServer();
 
 private slots:
     void on_tabWidget_tabBarClicked(int index);
     void loadMaze();
     void saveMaze();
-    void redrawMaze();
 
 private:
     Ui::microMouseServer *ui;
