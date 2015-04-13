@@ -1,6 +1,7 @@
 #include "micromouseserver.h"
 #include "ui_micromouseserver.h"
 #include "mazeConst.h"
+#include <mazegui.h>
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
@@ -11,9 +12,11 @@ microMouseServer::microMouseServer(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::microMouseServer)
 {
+    map = new mazeGui;
     //setup ui and interface
     ui->setupUi(this);
     linkMenu();
+    connect(this->map, SIGNAL(passWall(QLineF*)), this, SLOT(addWall(QLineF*)));
 
     //setup graphics scene
     ui->graphics->setBackgroundBrush(QBrush(Qt::black));
@@ -269,18 +272,10 @@ void microMouseServer::removeGuideLines()
     }
 }
 
-void microMouseServer::mouseClick(QGraphicsSceneMouseEvent *mouseEvent)
+void microMouseServer::addWall(QLineF *wall)
 {
-    QPen wallPen(QColor(0xFF,0xFF,0xFF,0x20));
-    wallPen.setWidth(WALL_THICKNESS_PX);
-
-
-    QPoint lineStart(0,0),
-           lineEnd(0,0);
-    if(mouseEvent->button() == Qt::LeftButton)
-    {
-        ui->txt_debug->append("caught mouse event");
-
-    }
+    this->mazeWalls->addToGroup(this->map->addLine(*wall, this->map->wallPen()));
 }
+
+
 

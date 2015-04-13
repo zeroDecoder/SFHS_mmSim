@@ -13,10 +13,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        micromouseserver.cpp
+        micromouseserver.cpp \
+    mazegui.cpp
 
 HEADERS  += micromouseserver.h \
     mazeConst.h \
-    mazeBase.h
+    mazeBase.h \
+    mazegui.h
 
 FORMS    += micromouseserver.ui
