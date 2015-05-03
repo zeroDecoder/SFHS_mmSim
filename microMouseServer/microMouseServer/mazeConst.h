@@ -7,7 +7,7 @@
 
 #ifndef MAZECONST_H_
 #define MAZECONST_H_
-#define PX_PER_UNIT 35
+#define PX_PER_UNIT 34
 #define MAZE_HEIGHT 20
 #define MAZE_WIDTH 20
 #define MAZE_HEIGHT_PX PX_PER_UNIT*MAZE_HEIGHT
@@ -18,9 +18,6 @@
 #define MOUSE_OUTLINE_THICKNESS 9
 #define MOUSE_RADIUS 7
 
-#define TOP 0
-#define RIGHT 1
-#define BOTTOM 2
-#define LEFT 3
+
 
 #endif /* MAZECONST_H_ */

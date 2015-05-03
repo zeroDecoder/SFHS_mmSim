@@ -12,9 +12,11 @@ TARGET = microMouseServer
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
+SOURCES += mazegui.cpp\
+        main.cpp \
         micromouseserver.cpp \
-    mazegui.cpp
+    mazeBase.cpp
+
 
 HEADERS  += micromouseserver.h \
     mazeConst.h \
