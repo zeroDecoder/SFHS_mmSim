@@ -31,21 +31,22 @@ private slots:
     void addRightWall(QPoint cell);
     void addTopWall(QPoint cell);
     void addBottomWall(QPoint cell);
+    void removeRightWall(QPoint cell);
+    void removeLeftWall(QPoint cell);
+    void removeTopWall(QPoint cell);
+    void removeBottomWall(QPoint cell);
+
 
 private:
     Ui::microMouseServer *ui;
 
-    mazeGui *map;
+    mazeGui *maze;
 
     std::vector<QGraphicsLineItem*> backgroundGrid;
-    QGraphicsItemGroup *bgGrid;
-    QGraphicsItemGroup *mazeWalls;
     struct baseMapNode mazeData[MAZE_WIDTH][MAZE_HEIGHT];
 
     void linkMenu();
-    void drawMaze();
-    void drawGuideLines();
-    void removeGuideLines();
+    void initMaze();
 };
 
 #endif // MICROMOUSESERVER_H

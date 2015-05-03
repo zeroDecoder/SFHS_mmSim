@@ -1,26 +1,31 @@
-/*
- * mazeBase.h
- *
- *  Created on: Jun 11, 2014
- *      Author: Elis Pogace
- */
+#ifndef MAZE_BASE_H
+#define MAZE_BASE_H
 
-#ifndef MAZEBASE_H_
-#define MAZEBASE_H_
 #include"mazeConst.h"
+#include<QGraphicsLineItem>
+enum Wall {TOP,BOTTOM,LEFT,RIGHT};
 
-struct baseMapNode
+class baseMapNode
 {
-	int x, y;
-	bool wallTop, wallBottom, wallLeft, wallRight;
-	struct baseMapNode *top, *bottom, *left, *right;
+private:
+    int _x,_y;
+    struct baseMapNode *_top, *_bottom, *_left, *_right;
+
+public:
+    baseMapNode();
+
+
+    int posX();
+    int posY();
+    bool isWallTop();
+    bool isWallLeft();
+    bool isWallRight();
+    bool isWallBottom();
+    void setX(int val);
+    void setY(int val);
+    void setXY(int valX,int valY);
+    void setWall(Wall pos, baseMapNode *addr);
+    void clearWall(Wall pos);
 };
 
-struct mouseData
-{
-	int direction;
-	int foundFinish;
-	struct baseMapNode *posData;
-};
-
-#endif /* MAZEBASE_H_ */
+#endif

@@ -1,7 +1,7 @@
 #include "micromouseserver.h"
 #include "ui_micromouseserver.h"
 #include "mazeConst.h"
-#include <mazegui.h>
+#include "mazegui.h"
 #include <QFileDialog>
 #include <QFile>
 #include <QTextStream>
@@ -12,28 +12,29 @@ microMouseServer::microMouseServer(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::microMouseServer)
 {
-    map = new mazeGui;
-    //setup ui and interface
+    maze = new mazeGui;
     ui->setupUi(this);
     linkMenu();
-    connect(this->map, SIGNAL(passTopWall(QPoint)), this, SLOT(addTopWall(QPoint)));
-    connect(this->map, SIGNAL(passBottomWall(QPoint)), this, SLOT(addBottomWall(QPoint)));
-    connect(this->map, SIGNAL(passLeftWall(QPoint)), this, SLOT(addLeftWall(QPoint)));
-    connect(this->map, SIGNAL(passRightWall(QPoint)), this, SLOT(addRightWall(QPoint)));
+    connect(this->maze, SIGNAL(passTopWall(QPoint)), this, SLOT(addTopWall(QPoint)));
+    connect(this->maze, SIGNAL(passBottomWall(QPoint)), this, SLOT(addBottomWall(QPoint)));
+    connect(this->maze, SIGNAL(passLeftWall(QPoint)), this, SLOT(addLeftWall(QPoint)));
+    connect(this->maze, SIGNAL(passRightWall(QPoint)), this, SLOT(addRightWall(QPoint)));
+    connect(this->maze, SIGNAL(takeBottomWall(QPoint)),this,SLOT(removeBottomWall(QPoint)));
+    connect(this->maze, SIGNAL(takeTopWall(QPoint)),this,SLOT(removeTopWall(QPoint)));
+    connect(this->maze, SIGNAL(takeLeftWall(QPoint)),this,SLOT(removeLeftWall(QPoint)));
+    connect(this->maze, SIGNAL(takeRightWall(QPoint)),this,SLOT(removeRightWall(QPoint)));
+
+
 
     //setup graphics scene
     ui->graphics->scale(1,-1);
     ui->graphics->setBackgroundBrush(QBrush(Qt::black));
     ui->graphics->setAutoFillBackground(true);
-    bgGrid = map->createItemGroup(map->selectedItems());
-    mazeWalls = map->createItemGroup(map->selectedItems());
+    ui->graphics->setScene(maze);
 
-
-
-    map->setSceneRect(QRectF(QPoint(0,0), QPoint(MAZE_WIDTH_PX,MAZE_HEIGHT_PX)));
-    ui->graphics->setScene(map);
-
-    drawGuideLines();
+    this->initMaze();
+    this->maze->drawGuideLines();
+    this->maze->drawMaze(this->mazeData);
 }
 
 
@@ -115,58 +116,50 @@ void microMouseServer::loadMaze()
                 largestY = y;
             }
         }
+
+        baseMapNode *mover = &this->mazeData[x-1][y-1];
         //load data into maze
-        this->mazeData[x-1][y-1].x = x;
-        this->mazeData[x-1][y-1].y = y;
+        mover->setXY(x,y);
 
         if(wallLeft)
         {
-            this->mazeData[x-1][y-1].wallLeft = true;
-            this->mazeData[x-1][y-1].left = NULL;
+             mover->setWall(LEFT, NULL);
         }
         else
         {
-            this->mazeData[x-1][y-1].wallLeft = false;
-            this->mazeData[x-1][y-1].left = &this->mazeData[x-2][y-1];
+            mover->setWall(LEFT, &this->mazeData[x-1][y]);
         }
 
         if(wallRight)
         {
-            this->mazeData[x-1][y-1].wallRight = true;
-            this->mazeData[x-1][y-1].right = NULL;
+            mover->setWall(RIGHT, NULL);
         }
         else
         {
-            this->mazeData[x-1][y-1].wallRight = false;
-            this->mazeData[x-1][y-1].right = &this->mazeData[x][y-1];
+            mover->setWall(RIGHT, &this->mazeData[x+1][y]);
         }
-
         if(wallTop)
         {
-            this->mazeData[x-1][y-1].wallTop = true;
-            this->mazeData[x-1][y-1].top = NULL;
+            mover->setWall(TOP, NULL);
         }
         else
         {
-            this->mazeData[x-1][y-1].wallTop = false;
-            this->mazeData[x-1][y-1].top = &this->mazeData[x-1][y];
+            mover->setWall(TOP, &this->mazeData[x][y+1]);
         }
 
         if(wallBottom)
         {
-            this->mazeData[x-1][y-1].wallBottom = true;
-            this->mazeData[x-1][y-1].bottom = NULL;
+            mover->setWall(BOTTOM, NULL);
         }
         else
         {
-            this->mazeData[x-1][y-1].wallBottom = false;
-            this->mazeData[x-1][y-1].bottom = &this->mazeData[x-1][y-2];
+            mover->setWall(BOTTOM, &this->mazeData[x][y-1]);
         }
     }
     ui->txt_debug->append("Maze loaded");
     mazeFile.flush();
     inFile.close();
-    this->drawMaze();
+    this->maze->drawMaze(this->mazeData);
 }
 
 
@@ -180,154 +173,141 @@ void microMouseServer::saveMaze()
         ui->txt_debug->append("ERROR 202: file not found");
         return;
     }
-
-    //read maze
-    QTextStream mazeFile(&inFile);
-
-    for(int i = 0; i < MAZE_WIDTH; i++)
+    else
     {
-        for(int j = 0; j < MAZE_HEIGHT; j++)
+        //read maze
+        QTextStream mazeFile(&inFile);
+
+        for(int i = 0; i < MAZE_WIDTH; i++)
         {
-
-            mazeFile << this->mazeData[i][j].x << " " << this->mazeData[i][j].y << " " << this->mazeData[i][j].wallTop << " " << this->mazeData[i][j].wallBottom << " " << this->mazeData[i][j].wallLeft << " " << this->mazeData[i][j].wallRight << endl;
-        }
-    }
-
-    mazeFile.flush();
-    inFile.close();
-    ui->txt_debug->append("Maze Saved to File.");
-}
-
-
-void microMouseServer::drawMaze()
-{
-    //delete old maze walls from GUI
-    this->map->removeItem(mazeWalls);
-    while (mazeWalls->childItems().size()>0)
-    {
-       delete (mazeWalls->childItems().first());
-    }
-    this->map->addItem(mazeWalls);
-
-    QPen wallPen(QColor(0xFF,0xFF,0xFF,0xFF));
-    wallPen.setWidth(WALL_THICKNESS_PX);
-
-    //Draw maze walls
-    for(int i = 0; i < MAZE_WIDTH; i++)
-    {
-        for(int j = 0; j < MAZE_HEIGHT; j++)
-        {
-            if(this->mazeData[i][j].wallBottom)
+            for(int j = 0; j < MAZE_HEIGHT; j++)
             {
-                this->mazeWalls->addToGroup(
-                            this->map->addLine(
-                                QLineF(i*PX_PER_UNIT,j*PX_PER_UNIT,(i+1)*PX_PER_UNIT,j*PX_PER_UNIT),
-                                wallPen));
-            }
-            if(this->mazeData[i][j].wallTop)
-            {
-                this->mazeWalls->addToGroup(
-                            this->map->addLine(
-                                QLineF(i*PX_PER_UNIT,(j+1)*PX_PER_UNIT,(i+1)*PX_PER_UNIT,(j+1)*PX_PER_UNIT),
-                                wallPen));
+                int top = this->mazeData[i][j].isWallTop();
+                int bottom = this->mazeData[i][j].isWallBottom();
+                int left = this->mazeData[i][j].isWallLeft();
+                int right = this->mazeData[i][j].isWallRight();
 
-            }
-            if(this->mazeData[i][j].wallLeft)
-            {
-                this->mazeWalls->addToGroup(
-                            this->map->addLine(
-                                QLineF(i*PX_PER_UNIT,j*PX_PER_UNIT, i*PX_PER_UNIT,(j+1)*PX_PER_UNIT),
-                                wallPen));
-            }
-            if(this->mazeData[i][j].wallRight)
-            {
-                this->mazeWalls->addToGroup(
-                            this->map->addLine(
-                                QLineF((i+1)*PX_PER_UNIT,j*PX_PER_UNIT,(i+1)*PX_PER_UNIT,(j+1)*PX_PER_UNIT),
-                                wallPen));
+                mazeFile << this->mazeData[i][j].posX() << " " << this->mazeData[i][j].posY() << " " << top << " " << bottom << " " << left << " " << right << endl;
             }
         }
+
+        mazeFile.flush();
+
+        inFile.close();
+        ui->txt_debug->append("Maze Saved to File.");
     }
-}
-
-
-void microMouseServer::drawGuideLines()
-{
-    QPen wallPen(QColor(0xFF,0xFF,0xFF,0x20));
-    wallPen.setWidth(WALL_THICKNESS_PX);
-
-    for(int i = 0 ; i <= MAZE_WIDTH; i++)
-    {
-       this->bgGrid->addToGroup(this->map->addLine(QLineF(i*PX_PER_UNIT,0,i*PX_PER_UNIT,MAZE_WIDTH_PX),wallPen));
-    }
-    for(int i = 0; i <= MAZE_HEIGHT; i++)
-    {
-       this->bgGrid->addToGroup(this->map->addLine(QLineF(0,i*PX_PER_UNIT,MAZE_HEIGHT_PX,i*PX_PER_UNIT), wallPen));
-    }
-}
-
-
-void microMouseServer::removeGuideLines()
-{
-    this->map->removeItem(bgGrid);
-    while(bgGrid->childItems().size()>0)
-    {
-        delete bgGrid->childItems().first();
-    }
-}
-
-void microMouseServer::addTopWall(QPoint cell)
-{
-    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, (cell.x()+1)*PX_PER_UNIT, cell.y()*PX_PER_UNIT),this->map->wallPen()));
-    baseMapNode *currPos = &this->mazeData[(int)cell.x()][cell.y()-1];
-    if(!currPos->wallTop)
-    {
-        currPos->top->wallBottom=true;
-        currPos->top->bottom=NULL;
-    }
-    currPos->wallTop =true;
-    currPos->top=NULL;
-}
-
-
-void microMouseServer::addBottomWall(QPoint cell)
-{
-    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, (cell.x()+1)*PX_PER_UNIT, cell.y()*PX_PER_UNIT),this->map->wallPen()));
-    baseMapNode *currPos = &this->mazeData[cell.x()][cell.y()];
-    if(!currPos->wallBottom)
-    {
-        currPos->bottom->wallTop=true;
-        currPos->bottom->top=NULL;
-    }
-    currPos->wallBottom = true;
-    currPos->bottom=NULL;
 }
 
 void microMouseServer::addLeftWall(QPoint cell)
 {
-    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, cell.x()*PX_PER_UNIT, (cell.y()+1)*PX_PER_UNIT),this->map->wallPen()));
-    baseMapNode *currPos = &this->mazeData[cell.x()][cell.y()];
-    if(!currPos->wallLeft)
-    {
-        currPos->left->wallRight = true;
-        currPos->left->right = NULL;
-    }
-    currPos->wallLeft = true;
-    currPos->right=NULL;
+    this->mazeData[cell.x()][cell.y()].setWall(LEFT, NULL);
+    if(cell.x() > 0)this->mazeData[cell.x()-1][cell.y()].setWall(RIGHT,NULL);
+    this->maze->drawMaze(this->mazeData);
 }
-
 
 void microMouseServer::addRightWall(QPoint cell)
 {
-    this->bgGrid->addToGroup(this->map->addLine(QLine(cell.x()*PX_PER_UNIT,cell.y()*PX_PER_UNIT, cell.x()*PX_PER_UNIT, (cell.y()+1)*PX_PER_UNIT),this->map->wallPen()));
-    baseMapNode *currPos = &this->mazeData[cell.x()-1][cell.y()];
-    if(!currPos->wallRight)
+    this->mazeData[cell.x()][cell.y()].setWall(RIGHT, NULL);
+    if(cell.x() < MAZE_WIDTH )this->mazeData[cell.x()+1][cell.y()].setWall(LEFT, NULL);
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::addTopWall(QPoint cell)
+{
+    this->mazeData[cell.x()][cell.y()].setWall(TOP, NULL);
+    if(cell.y() < MAZE_HEIGHT)this->mazeData[cell.x()][cell.y()+1].setWall(BOTTOM,NULL);
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::addBottomWall(QPoint cell)
+{
+    this->mazeData[cell.x()][cell.y()].setWall(BOTTOM, NULL);
+    if(cell.y() > 0)this->mazeData[cell.x()][cell.y()-1].setWall(TOP,NULL);
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::initMaze()
+{
+    for(int y =0; y < MAZE_HEIGHT; y++)
     {
-        currPos->right->wallLeft = true;
-        currPos->right->left = NULL;
+        for(int x = 0; x < MAZE_WIDTH; x++)
+        {
+            baseMapNode *mover = &this->mazeData[x][y];
+            mover->setXY(x+1,y+1);
+            if(x == 0)
+            {
+                mover->setWall(LEFT, NULL);
+            }
+            else
+            {
+                mover->setWall(LEFT, &this->mazeData[x-1][y]);
+            }
+            if(x == MAZE_WIDTH-1)
+            {
+                mover->setWall(RIGHT, NULL);
+            }
+            else
+            {
+                mover->setWall(RIGHT, &this->mazeData[x+1][y]);
+            }
+            if(y == 0)
+            {
+                mover->setWall(BOTTOM, NULL);
+            }
+            else
+            {
+                mover->setWall(BOTTOM,  &this->mazeData[x][y-1]);
+            }
+            if(y == MAZE_HEIGHT-1)
+            {
+                mover->setWall(TOP, NULL);
+            }
+            else
+            {
+                mover->setWall(TOP,  &this->mazeData[x][y+1]);
+            }
+        }
     }
-    currPos->wallRight = true;
-    currPos->right=NULL;
+}
+
+void microMouseServer::removeRightWall(QPoint cell)
+{
+    if(cell.x() < MAZE_WIDTH -1)
+    {
+        this->mazeData[cell.x()][cell.y()].setWall(RIGHT, &this->mazeData[cell.x()+1][cell.y()]);
+        this->mazeData[cell.x()+1][cell.y()].setWall(LEFT, &this->mazeData[cell.x()][cell.y()]);
+    }
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::removeLeftWall(QPoint cell)
+{
+    if(cell.x() > 0)
+    {
+        this->mazeData[cell.x()][cell.y()].setWall(LEFT, &this->mazeData[cell.x()-1][cell.y()]);
+        this->mazeData[cell.x()-1][cell.y()].setWall(RIGHT, &this->mazeData[cell.x()][cell.y()]);
+    }
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::removeTopWall(QPoint cell)
+{
+    if(cell.y() < MAZE_HEIGHT -1)
+    {
+        this->mazeData[cell.x()][cell.y()].setWall(TOP, &this->mazeData[cell.x()][cell.y()+1]);
+        this->mazeData[cell.x()][cell.y()+1].setWall(BOTTOM, &this->mazeData[cell.x()][cell.y()]);
+    }
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::removeBottomWall(QPoint cell)
+{
+    if(cell.y() > 0)
+    {
+        this->mazeData[cell.x()][cell.y()].setWall(BOTTOM, &this->mazeData[cell.x()][cell.y()-1]);
+        this->mazeData[cell.x()][cell.y()-1].setWall(TOP, &this->mazeData[cell.x()][cell.y()]);
+    }
+    this->maze->drawMaze(this->mazeData);
 }
 
 
