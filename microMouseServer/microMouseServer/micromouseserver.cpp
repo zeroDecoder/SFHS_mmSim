@@ -340,6 +340,9 @@ void microMouseServer::addBottomWall(QPoint cell)
 
 void microMouseServer::startAI()
 {
+    QPoint newPos;
+    newPos.setX(1);
+    newPos.setY(1);
     _aiCallTimer->start(MDELAY);
 }
 
