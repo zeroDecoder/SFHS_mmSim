@@ -7,26 +7,16 @@
 #include <QTextStream>
 
 
-
 microMouseServer::microMouseServer(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::microMouseServer)
 {
     maze = new mazeGui;
+    _comTimer = new QTimer(this);
+    _aiCallTimer = new QTimer(this);
     ui->setupUi(this);
-    linkMenu();
-    connect(this->maze, SIGNAL(passTopWall(QPoint)), this, SLOT(addTopWall(QPoint)));
-    connect(this->maze, SIGNAL(passBottomWall(QPoint)), this, SLOT(addBottomWall(QPoint)));
-    connect(this->maze, SIGNAL(passLeftWall(QPoint)), this, SLOT(addLeftWall(QPoint)));
-    connect(this->maze, SIGNAL(passRightWall(QPoint)), this, SLOT(addRightWall(QPoint)));
-    connect(this->maze, SIGNAL(takeBottomWall(QPoint)),this,SLOT(removeBottomWall(QPoint)));
-    connect(this->maze, SIGNAL(takeTopWall(QPoint)),this,SLOT(removeTopWall(QPoint)));
-    connect(this->maze, SIGNAL(takeLeftWall(QPoint)),this,SLOT(removeLeftWall(QPoint)));
-    connect(this->maze, SIGNAL(takeRightWall(QPoint)),this,SLOT(removeRightWall(QPoint)));
+    connectSignals();
 
-
-
-    //setup graphics scene
     ui->graphics->scale(1,-1);
     ui->graphics->setBackgroundBrush(QBrush(Qt::black));
     ui->graphics->setAutoFillBackground(true);
@@ -35,34 +25,63 @@ microMouseServer::microMouseServer(QWidget *parent) :
     this->initMaze();
     this->maze->drawGuideLines();
     this->maze->drawMaze(this->mazeData);
+
 }
 
 
 microMouseServer::~microMouseServer()
 {
     delete ui;
+    delete _comTimer;
+    delete maze;
 }
 
 
 void microMouseServer::on_tabWidget_tabBarClicked(int index)
 {
     index = index;
+    //left for testing, does nothing in this rev, will remove in nex rev
 }
 
-
-void microMouseServer::linkMenu()
+void microMouseServer::connectSignals()
 {
+    //connect all signals
+
     connect(ui->menu_loadMaze, SIGNAL(triggered()), this, SLOT(loadMaze()));
     connect(ui->menu_saveMaze, SIGNAL(triggered()), this, SLOT(saveMaze()));
+    connect(ui->menu_connect2Mouse, SIGNAL(triggered()), this, SLOT(connect2mouse()));
+    connect(ui->menu_startRun, SIGNAL(triggered()), this, SLOT(startAI()));
+
+    connect(_comTimer, SIGNAL(timeout()), this, SLOT(netComs()));
+    connect(_aiCallTimer, SIGNAL(timeout()), this, SLOT(studentAI()));
+
+    connect(this->maze, SIGNAL(passTopWall(QPoint)), this, SLOT(addTopWall(QPoint)));
+    connect(this->maze, SIGNAL(passBottomWall(QPoint)), this, SLOT(addBottomWall(QPoint)));
+    connect(this->maze, SIGNAL(passLeftWall(QPoint)), this, SLOT(addLeftWall(QPoint)));
+    connect(this->maze, SIGNAL(passRightWall(QPoint)), this, SLOT(addRightWall(QPoint)));
+    connect(this->maze, SIGNAL(takeBottomWall(QPoint)),this,SLOT(removeBottomWall(QPoint)));
+    connect(this->maze, SIGNAL(takeTopWall(QPoint)),this,SLOT(removeTopWall(QPoint)));
+    connect(this->maze, SIGNAL(takeLeftWall(QPoint)),this,SLOT(removeLeftWall(QPoint)));
+    connect(this->maze, SIGNAL(takeRightWall(QPoint)),this,SLOT(removeRightWall(QPoint)));
+}
+void microMouseServer::connect2mouse()
+{
+    //cut for mac compatibility
 }
 
+void microMouseServer::netComs()
+{
+    //cut for mac compatibility
+}
 
 void microMouseServer::loadMaze()
 {
+    //open file find window
     QString fileName = QFileDialog::getOpenFileName(this,
              tr("Open Maze File"), "./", tr("Maze Files (*.maz)"));
     QFile inFile(fileName);
 
+    //if the file can't be opened throw error to ui
     if (!inFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         ui->txt_debug->append("ERROR 202: file not found");
@@ -159,15 +178,21 @@ void microMouseServer::loadMaze()
     ui->txt_debug->append("Maze loaded");
     mazeFile.flush();
     inFile.close();
+
+    //draw maze and mouse
     this->maze->drawMaze(this->mazeData);
+    this->maze->drawMouse(QPoint(1,1),dUP);
 }
 
 
 void microMouseServer::saveMaze()
 {
+    //open file save window
     QString fileName = QFileDialog::getSaveFileName(this,
              tr("Select Maze File"), "", tr("Maze Files (*.maz)"));
     QFile inFile(fileName);
+
+    //if file can't be opened throw error to UI
     if (!inFile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         ui->txt_debug->append("ERROR 202: file not found");
@@ -175,7 +200,6 @@ void microMouseServer::saveMaze()
     }
     else
     {
-        //read maze
         QTextStream mazeFile(&inFile);
 
         for(int i = 0; i < MAZE_WIDTH; i++)
@@ -198,36 +222,9 @@ void microMouseServer::saveMaze()
     }
 }
 
-void microMouseServer::addLeftWall(QPoint cell)
-{
-    this->mazeData[cell.x()][cell.y()].setWall(LEFT, NULL);
-    if(cell.x() > 0)this->mazeData[cell.x()-1][cell.y()].setWall(RIGHT,NULL);
-    this->maze->drawMaze(this->mazeData);
-}
-
-void microMouseServer::addRightWall(QPoint cell)
-{
-    this->mazeData[cell.x()][cell.y()].setWall(RIGHT, NULL);
-    if(cell.x() < MAZE_WIDTH )this->mazeData[cell.x()+1][cell.y()].setWall(LEFT, NULL);
-    this->maze->drawMaze(this->mazeData);
-}
-
-void microMouseServer::addTopWall(QPoint cell)
-{
-    this->mazeData[cell.x()][cell.y()].setWall(TOP, NULL);
-    if(cell.y() < MAZE_HEIGHT)this->mazeData[cell.x()][cell.y()+1].setWall(BOTTOM,NULL);
-    this->maze->drawMaze(this->mazeData);
-}
-
-void microMouseServer::addBottomWall(QPoint cell)
-{
-    this->mazeData[cell.x()][cell.y()].setWall(BOTTOM, NULL);
-    if(cell.y() > 0)this->mazeData[cell.x()][cell.y()-1].setWall(TOP,NULL);
-    this->maze->drawMaze(this->mazeData);
-}
-
 void microMouseServer::initMaze()
 {
+    //zero out data in maze, way slower than memset but safer. Will switch to memset if I have time to test
     for(int y =0; y < MAZE_HEIGHT; y++)
     {
         for(int x = 0; x < MAZE_WIDTH; x++)
@@ -270,6 +267,8 @@ void microMouseServer::initMaze()
     }
 }
 
+
+//--This is a terrible way of doing this in C++, I will fix in the next revision
 void microMouseServer::removeRightWall(QPoint cell)
 {
     if(cell.x() < MAZE_WIDTH -1)
@@ -310,4 +309,185 @@ void microMouseServer::removeBottomWall(QPoint cell)
     this->maze->drawMaze(this->mazeData);
 }
 
+void microMouseServer::addLeftWall(QPoint cell)
+{
+    this->mazeData[cell.x()][cell.y()].setWall(LEFT, NULL);
+    if(cell.x() > 0)this->mazeData[cell.x()-1][cell.y()].setWall(RIGHT,NULL);
+    this->maze->drawMaze(this->mazeData);
+}
 
+void microMouseServer::addRightWall(QPoint cell)
+{
+    this->mazeData[cell.x()][cell.y()].setWall(RIGHT, NULL);
+    if(cell.x() < MAZE_WIDTH )this->mazeData[cell.x()+1][cell.y()].setWall(LEFT, NULL);
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::addTopWall(QPoint cell)
+{
+    this->mazeData[cell.x()][cell.y()].setWall(TOP, NULL);
+    if(cell.y() < MAZE_HEIGHT)this->mazeData[cell.x()][cell.y()+1].setWall(BOTTOM,NULL);
+    this->maze->drawMaze(this->mazeData);
+}
+
+void microMouseServer::addBottomWall(QPoint cell)
+{
+    this->mazeData[cell.x()][cell.y()].setWall(BOTTOM, NULL);
+    if(cell.y() > 0)this->mazeData[cell.x()][cell.y()-1].setWall(TOP,NULL);
+    this->maze->drawMaze(this->mazeData);
+}
+//--up to here
+
+void microMouseServer::startAI()
+{
+    _aiCallTimer->start(MDELAY);
+}
+
+bool microMouseServer::isWallForward()
+{
+    baseMapNode *mover = &this->mazeData[this->maze->mouseX()-1][this->maze->mouseY()-1];
+    switch (this->maze->mouseDir()) {
+    case dUP:
+        return mover->isWallTop();
+        break;
+    case dDOWN:
+        return mover->isWallBottom();
+        break;
+    case dLEFT:
+        return mover->isWallLeft();
+        break;
+    case dRIGHT:
+        return mover->isWallRight();
+        break;
+    }
+
+    return true;
+}
+bool microMouseServer::isWallLeft()
+{
+    baseMapNode *mover = &this->mazeData[this->maze->mouseX()-1][this->maze->mouseY()-1];
+    switch (this->maze->mouseDir()) {
+    case dUP:
+        return mover->isWallLeft();
+        break;
+    case dDOWN:
+        return mover->isWallRight();
+        break;
+    case dLEFT:
+        return mover->isWallBottom();
+        break;
+    case dRIGHT:
+        return mover->isWallTop();
+        break;
+    }
+    return true;
+}
+bool microMouseServer::isWallRight()
+{
+    baseMapNode *mover = &this->mazeData[this->maze->mouseX()-1][this->maze->mouseY()-1];
+    switch (this->maze->mouseDir()) {
+    case dUP:
+        return mover->isWallRight();
+        break;
+    case dDOWN:
+        return mover->isWallLeft();
+        break;
+    case dLEFT:
+        return mover->isWallTop();
+        break;
+    case dRIGHT:
+        return mover->isWallBottom();
+        break;
+    }
+    return true;
+}
+bool microMouseServer::moveForward()
+{
+    bool hasMoved = false;
+    QPoint newPos;
+    newPos.setX(this->maze->mouseX());
+    newPos.setY(this->maze->mouseY());
+    baseMapNode *mover = &this->mazeData[this->maze->mouseX()-1][this->maze->mouseY()-1];
+    switch (this->maze->mouseDir()) {
+    case dUP:
+        if(!mover->isWallTop())
+        {
+            newPos.setY(newPos.y()+1);
+            this->maze->drawMouse(newPos, dUP);
+            hasMoved = true;
+        }
+        break;
+    case dDOWN:
+        if(!mover->isWallBottom())
+        {
+            newPos.setY(newPos.y()-1);
+            this->maze->drawMouse(newPos, dDOWN);
+            hasMoved = true;
+        }
+        break;
+    case dLEFT:
+        if(!mover->isWallLeft())
+        {
+            newPos.setX(newPos.x()-1);
+            this->maze->drawMouse(newPos, dLEFT);
+            hasMoved = true;
+        }
+        break;
+    case dRIGHT:
+        if(!mover->isWallRight())
+        {
+            newPos.setX(newPos.x()+1);
+            this->maze->drawMouse(newPos, dRIGHT);
+            hasMoved = true;
+        }
+        break;
+    }
+
+    return hasMoved;
+}
+void microMouseServer::turnLeft()
+{
+    QPoint newPos;
+    newPos.setX(this->maze->mouseX());
+    newPos.setY(this->maze->mouseY());
+    switch(this->maze->mouseDir()){
+    case dUP:
+        this->maze->drawMouse(newPos, dLEFT);
+        break;
+    case dDOWN:
+        this->maze->drawMouse(newPos, dRIGHT);
+        break;
+    case dLEFT:
+        this->maze->drawMouse(newPos, dDOWN);
+        break;
+    case dRIGHT:
+        this->maze->drawMouse(newPos, dUP);
+        break;
+    }
+
+}
+void microMouseServer::turnRight()
+{
+    QPoint newPos;
+    newPos.setX(this->maze->mouseX());
+    newPos.setY(this->maze->mouseY());
+    switch(this->maze->mouseDir()){
+    case dUP:
+        this->maze->drawMouse(newPos, dRIGHT);
+        break;
+    case dDOWN:
+        this->maze->drawMouse(newPos, dLEFT);
+        break;
+    case dLEFT:
+        this->maze->drawMouse(newPos, dUP);
+        break;
+    case dRIGHT:
+        this->maze->drawMouse(newPos, dDOWN);
+        break;
+    }
+}
+
+void microMouseServer::studentAI()
+{
+
+}

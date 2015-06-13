@@ -5,18 +5,31 @@
 #include <QPen>
 #include <QGraphicsScene>
 #include <QGraphicsItemGroup>
+#include <QGraphicsItem>
+#include <QPainter>
+#include <QPoint>
+#include <QStyleOptionGraphicsItem>
 
 class mazeGui : public QGraphicsScene
 {
     Q_OBJECT
 public:
-    QPen wallPen();
     explicit mazeGui(QObject *parent = 0);
+    ~mazeGui();
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
-    QGraphicsItemGroup *_bgGrid;
+    QPen wallPen();
+
     QGraphicsItemGroup *mazeWalls;
+
     void drawMaze(baseMapNode data[][MAZE_HEIGHT]);
+    void drawMouse(QPoint cell, mDirection direction);
     void drawGuideLines();
+
+    int mouseX();
+    int mouseY();
+    void setMouseX();
+    void setMouseY();
+    mDirection mouseDir();
 
 signals:
     void passRightWall(QPoint cell);
@@ -32,8 +45,14 @@ signals:
 public slots:
 
 private:
+    QGraphicsItemGroup *_bgGrid;
+    QGraphicsEllipseItem *_mouse;
     QPen *_wallPen;
     QPen *_guidePen;
+    QPen *_mousePen;
+    QBrush *_mouseBrush;
+    QPoint _mousePos;
+    mDirection _mouseDir;
 };
 
 #endif // MAZEGUI_H

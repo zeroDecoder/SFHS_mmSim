@@ -5,16 +5,38 @@
 mazeGui::mazeGui(QObject *parent) :
     QGraphicsScene(parent)
 {
+    //initialize gui colors
     this->_wallPen = new QPen(QColor(0xFF,0xFF,0xFF,0xFF));
     this->_guidePen = new QPen(QColor(0xFF,0xFF,0xFF,0x20));
+    this->_mousePen = new QPen(QColor(0xFF,0xFF,0x00,0xFF));
+    this->_mouseBrush = new QBrush(QColor(0xFF, 0xFF, 0X00, 0xFF));
     this->_wallPen->setWidth(WALL_THICKNESS_PX);
     this->_guidePen->setWidth(WALL_THICKNESS_PX);
 
+    //initialize graphics groups
     this->_bgGrid = this->createItemGroup(this->selectedItems());
     this->mazeWalls = this->createItemGroup(this->selectedItems());
+    this->_mouse = NULL;
 
+    //Generate maze window
     this->setSceneRect(QRectF(QPoint(0,0), QPoint(MAZE_WIDTH_PX,MAZE_HEIGHT_PX)));
+
+    _mousePos.setX(1);
+    _mousePos.setY(1);
+    _mouseDir = dUP;
 }
+
+mazeGui::~mazeGui()
+{
+    delete _wallPen;
+    delete _guidePen;
+    delete _mousePen;
+    delete _mouseBrush;
+    delete _bgGrid;
+    delete mazeWalls;
+    delete _mouse;
+}
+
 void mazeGui::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     //check if mouse event is a left click inside of the maze
@@ -30,6 +52,7 @@ void mazeGui::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         int xpos = (int)mouseEvent->scenePos().x() / PX_PER_UNIT;
         int ypos = (int)mouseEvent->scenePos().y() / PX_PER_UNIT;
 
+        //This needs to be redone so it is more robust, missed clicks when x/ymod=0;
         if((xmod < PX_PER_UNIT/3  || xmod > 2*PX_PER_UNIT/3 )&& ymod > PX_PER_UNIT/3  && ymod < 2*PX_PER_UNIT/3)
         {
             if(xmod >= PX_PER_UNIT /2)
@@ -53,6 +76,7 @@ void mazeGui::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             }
         }
     }
+    //checks for right clicks, very inefficient since the bound checks are done twice.
     else if(mouseEvent->button() == Qt::RightButton &&
             mouseEvent->scenePos().x() > 0 &&
             mouseEvent->scenePos().y() > 0 &&
@@ -115,6 +139,7 @@ void mazeGui::drawMaze(baseMapNode data[][MAZE_HEIGHT])
     this->removeItem(this->mazeWalls);
     while (this->mazeWalls->childItems().size()>0)
     {
+       //this is super inefficient, causes noticeable lag when changing maze
        delete (this->mazeWalls->childItems().first());
     }
     this->addItem(this->mazeWalls);
@@ -143,5 +168,38 @@ void mazeGui::drawMaze(baseMapNode data[][MAZE_HEIGHT])
             }
         }
     }
+    drawMouse(_mousePos, _mouseDir);
 }
 
+void mazeGui::drawMouse(QPoint cell, mDirection direction)
+{
+    _mouseDir = direction;
+    _mousePos = cell;
+    //math!
+    float xPos = (cell.x()-1) * PX_PER_UNIT + PX_PER_UNIT *.125;
+    float yPos = (cell.y()-1) * PX_PER_UNIT + PX_PER_UNIT *.125;
+    QRectF boundingBox(xPos,
+                       yPos,
+                       PX_PER_UNIT * .75,
+                       PX_PER_UNIT * .75);
+
+    int startAngle = (45 + 90*direction)*16, spanAngle = (360-90)*16;
+    QGraphicsEllipseItem *delHolder = _mouse;
+    _mouse = this->addEllipse(boundingBox, *_mousePen, *_mouseBrush);
+    _mouse->setStartAngle(startAngle);
+    _mouse->setSpanAngle(spanAngle);
+    if(delHolder) delete delHolder;
+}
+
+int mazeGui::mouseX()
+{
+   return _mousePos.x();
+}
+int mazeGui::mouseY()
+{
+    return _mousePos.y();
+}
+mDirection mazeGui::mouseDir()
+{
+    return _mouseDir;
+}

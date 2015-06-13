@@ -10,6 +10,10 @@
 #include <QEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QLineF>
+#include <QTimer>
+#include "networkinterface.h"
+
+
 
 namespace Ui {
 class microMouseServer;
@@ -22,6 +26,7 @@ class microMouseServer : public QMainWindow
 public:
     explicit microMouseServer(QWidget *parent = 0);
     ~microMouseServer();
+    networkInterface bridge;
 
 private slots:
     void on_tabWidget_tabBarClicked(int index);
@@ -35,17 +40,28 @@ private slots:
     void removeLeftWall(QPoint cell);
     void removeTopWall(QPoint cell);
     void removeBottomWall(QPoint cell);
+    void netComs();
+    void connect2mouse();
+    void startAI();
+    void studentAI();
 
 
 private:
+    bool isWallLeft();
+    bool isWallRight();
+    bool isWallForward();
+    bool moveForward();
+    void turnLeft();
+    void turnRight();
+
+    QTimer *_comTimer;
+    QTimer *_aiCallTimer;
+    static const int _mDelay = 100;
     Ui::microMouseServer *ui;
-
     mazeGui *maze;
-
     std::vector<QGraphicsLineItem*> backgroundGrid;
     struct baseMapNode mazeData[MAZE_WIDTH][MAZE_HEIGHT];
-
-    void linkMenu();
+    void connectSignals();
     void initMaze();
 };
 
