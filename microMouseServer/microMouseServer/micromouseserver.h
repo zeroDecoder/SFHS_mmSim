@@ -11,7 +11,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QLineF>
 #include <QTimer>
-#include "networkinterface.h"
 
 
 
@@ -26,7 +25,6 @@ class microMouseServer : public QMainWindow
 public:
     explicit microMouseServer(QWidget *parent = 0);
     ~microMouseServer();
-    networkInterface bridge;
 
 private slots:
     void on_tabWidget_tabBarClicked(int index);
@@ -53,6 +51,8 @@ private:
     bool moveForward();
     void turnLeft();
     void turnRight();
+    void foundFinish();
+    void printUI(const char *mesg);
 
     QTimer *_comTimer;
     QTimer *_aiCallTimer;

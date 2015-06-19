@@ -15,16 +15,12 @@ TEMPLATE = app
 SOURCES += mazegui.cpp\
         main.cpp \
         micromouseserver.cpp \
-    mazeBase.cpp \
-    networkinterface.cpp
+    mazeBase.cpp
 
 
 HEADERS  += micromouseserver.h \
     mazeConst.h \
     mazeBase.h \
-    mazegui.h \
-    networkinterface.h
+    mazegui.h
 
 FORMS    += micromouseserver.ui
-
-win32:LIBS += -lWS2_32
