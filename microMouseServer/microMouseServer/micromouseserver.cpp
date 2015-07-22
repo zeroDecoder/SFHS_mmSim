@@ -146,7 +146,7 @@ void microMouseServer::loadMaze()
         }
         else
         {
-            mover->setWall(LEFT, &this->mazeData[x-1][y]);
+            //mover->setWall(LEFT, &this->mazeData[x-1][y]);
         }
 
         if(wallRight)
@@ -155,7 +155,7 @@ void microMouseServer::loadMaze()
         }
         else
         {
-            mover->setWall(RIGHT, &this->mazeData[x+1][y]);
+            //mover->setWall(RIGHT, &this->mazeData[x+1][y]);
         }
         if(wallTop)
         {
@@ -163,7 +163,7 @@ void microMouseServer::loadMaze()
         }
         else
         {
-            mover->setWall(TOP, &this->mazeData[x][y+1]);
+            //mover->setWall(TOP, &this->mazeData[x][y+1]);
         }
 
         if(wallBottom)
@@ -172,7 +172,7 @@ void microMouseServer::loadMaze()
         }
         else
         {
-            mover->setWall(BOTTOM, &this->mazeData[x][y-1]);
+            //mover->setWall(BOTTOM, &this->mazeData[x][y-1]);
         }
     }
     ui->txt_debug->append("Maze loaded");
