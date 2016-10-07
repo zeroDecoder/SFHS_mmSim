@@ -1,5 +1,5 @@
 #ifndef MICROMOUSESERVER_H
-#define MICROMOUSESERVER_H
+#define MICROMOUSESERVER_HPP
 #include "mazeConst.h"
 #include "mazeBase.h"
 #include "mazegui.h"
@@ -15,7 +15,7 @@
 
 
 namespace Ui {
-class microMouseServer;
+    class microMouseServer;
 }
 
 class microMouseServer : public QMainWindow
